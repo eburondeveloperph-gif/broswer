@@ -140,7 +140,7 @@ export default function HomePage() {
     } catch (err) {
       const result: AutomationResult = {
         success: false,
-        error: "Failed to run AI agent",
+        error: "Failed to run Eburon agent",
         task: task.trim(),
         timestamp: Date.now(),
       };
@@ -206,15 +206,15 @@ export default function HomePage() {
               <h2 className="text-6xl lg:text-7xl font-bold text-balance">
                 <span className="bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">AI-Powered Browser Automation with </span>
                 <Image
-                  src="/kernel-wordmark-accent.svg"
-                  alt="Kernel"
+                  src="/maximus-wordmark-accent.svg"
+                  alt="Maximus"
                   width={836}
                   height={160}
                   className="inline-block h-[0.75em] w-auto align-baseline"
                 />
               </h2>
               <p className="text-lg text-gray-400 text-balance">
-                Describe what you want to do in natural language, and watch as an AI agent executes browser automation in a serverless browser.
+                Describe what you want to do in natural language, and watch as an Eburon agent executes browser automation in a serverless browser.
               </p>
             </div>
 
@@ -257,7 +257,7 @@ export default function HomePage() {
                     {deployUrl && (
                       <div className="pt-2">
                         <p className="text-sm text-muted-foreground mb-3">
-                          Deploy this template with the Kernel integration to get started:
+                          Deploy this template with the Maximus integration to get started:
                         </p>
                         <a
                           href={deployUrl}
@@ -332,7 +332,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
 
-                {/* Step 2: Run AI Agent */}
+                {/* Step 2: Run Eburon Agent */}
                 <Card>
                   <CardContent>
                     <div className="space-y-4">
@@ -370,10 +370,10 @@ export default function HomePage() {
                         {runningAutomation ? (
                           <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            AI Agent Running...
+                            Eburon Agent Running...
                           </>
                         ) : (
-                          "Run AI Agent"
+                          "Run Eburon Agent"
                         )}
                       </Button>
                     </div>
@@ -492,7 +492,7 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <h3 className="font-semibold text-white">Create Browser</h3>
                     <p className="text-sm text-gray-500">
-                      Kernel provisions a serverless browser instance in ~300ms. Fully isolated and scalable.
+                      Maximus provisions a serverless browser instance in ~300ms. Fully isolated and scalable.
                     </p>
                   </div>
                 </CardContent>
@@ -510,7 +510,7 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <h3 className="font-semibold text-white">Describe Your Task</h3>
                     <p className="text-sm text-gray-400">
-                      Tell the browser agent what you want to do in natural language. Turn intent to action with AI SDK.
+                      Tell the browser agent what you want to do in natural language. Turn intent to action with Eburon tools.
                     </p>
                   </div>
                 </CardContent>
@@ -528,7 +528,7 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <h3 className="font-semibold text-white">Watch it Execute</h3>
                     <p className="text-sm text-gray-500">
-                      Agent generates and executes automation code in real-time using Kernel's AI SDK-compatible tools.
+                      Agent generates and executes automation code in real-time using Maximus's Eburon-compatible tools.
                     </p>
                   </div>
                 </CardContent>
@@ -549,7 +549,7 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Kernel
+              Maximus
             </a>
             ,{" "}
             <a
@@ -567,7 +567,7 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              GPT-5
+              Eburon
             </a>
           </p>
         </div>
