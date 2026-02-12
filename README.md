@@ -4,13 +4,17 @@ Next.js + Kernel template for running AI-powered browser automations with natura
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fonkernel%2Fkernel-nextjs-template&env=OLLAMA_API_KEY&project-name=kernel-nextjs-template&repository-name=kernel-nextjs-template&products=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22kernel%22%2C%22productSlug%22%3A%22kernel%22%2C%22protocol%22%3A%22other%22%7D%5D)
 
-
 ## Overview
 
 This template shows how to:
 
 - Create serverless browsers with live view using the Kernel SDK
+- Optionally run sandbox sessions from your own VPS via CDP + live view URL
 - Describe browser tasks in natural language
+- Route each task to one of three agents/models:
+  - Automation agent: `kimi-k2-thinking:cloud`
+  - Reasoning agent: `deepseek-v3.1:671b-cloud`
+  - OCR agent: `glm-ocr:latest`
 - Use an AI agent to execute browser automation code via AI SDK tools in Next.js API routes
 - Display live browser view and automation results in a modern Next.js UI
 
@@ -32,6 +36,7 @@ This template shows how to:
 - [Bun](https://bun.sh) (package manager)
 - A Kernel account and API key
 - Ollama running locally on `http://localhost:11434`
+- [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) (optional, for local memory)
 - Vercel account (optional, for deployment)
 
 ### Installation
@@ -66,20 +71,57 @@ This template shows how to:
 
    Add your API keys:
 
-   ```
+   ```dotenv
    KERNEL_API_KEY=your_kernel_api_key_here
+   SANDBOX_PROVIDER=kernel
+
+   # Local Ollama (default path)
    OLLAMA_BASE_URL=http://localhost:11434/v1
    OLLAMA_API_KEY=ollama
    OLLAMA_MODEL=kimi-k2-thinking:cloud
+   OLLAMA_MODEL_AUTOMATION=kimi-k2-thinking:cloud
+   OLLAMA_MODEL_REASONING=deepseek-v3.1:671b-cloud
+   OLLAMA_MODEL_OCR=glm-ocr:latest
+
+   # Optional cloud fallback (used automatically if local Ollama is unreachable)
+   OLLAMA_CLOUD_BASE_URL=
+   OLLAMA_CLOUD_API_KEY=
+   OLLAMA_CLOUD_MODEL=
+   OLLAMA_CLOUD_MODEL_AUTOMATION=kimi-k2-thinking:cloud
+   OLLAMA_CLOUD_MODEL_REASONING=deepseek-v3.1:671b-cloud
+   OLLAMA_CLOUD_MODEL_OCR=glm-ocr:latest
+   OLLAMA_CLOUD_DEPLOYMENT_SHA=
+   OLLAMA_CLOUD_SSH_PUBLIC_KEY=
+
+   # Supabase memory (self-hosted local or cloud)
+   SUPABASE_URL=
+   SUPABASE_ANON_KEY=
+   SUPABASE_SERVICE_ROLE_KEY=
+   SUPABASE_MEMORY_TABLE=agent_memory
+
+   # Optional VPS sandbox mode
+   # Set SANDBOX_PROVIDER=vps to use your VPS browser instead of Kernel.
+   VPS_SANDBOX_SESSION_ID=vps-sandbox-session
+   VPS_SANDBOX_LIVE_VIEW_URL=
+   VPS_SANDBOX_CDP_WS_URL=
    ```
 
-5. **Run the development server**:
+5. **Optional: start self-hosted Supabase locally**:
+
+   ```bash
+   bun run supabase:start
+   supabase db query < supabase/agent-memory.sql
+   ```
+
+   Then set local memory vars in `.env.local` (typical local URL: `http://127.0.0.1:54321`).
+
+6. **Run the development server**:
 
    ```bash
    bun dev
    ```
 
-6. **Open** [http://localhost:3000](http://localhost:3000) in your browser
+7. **Open** [http://localhost:3000](http://localhost:3000) in your browser
 
 ## How It Works
 
@@ -90,7 +132,7 @@ This template shows how to:
 
 ## Code Structure
 
-```
+```text
 app/
 ├── api/
 │   ├── agent/
@@ -186,7 +228,7 @@ const { text, steps } = await agent.generate({
 
    - Go to [vercel.com](https://vercel.com)
    - Import your GitHub repository
-   - Add your environment variables (`KERNEL_API_KEY`, `OLLAMA_BASE_URL`, `OLLAMA_API_KEY`, `OLLAMA_MODEL`)
+   - Add your environment variables (`KERNEL_API_KEY`, local Ollama vars, and optional `OLLAMA_CLOUD_*` fallback vars)
    - Deploy!
 
 3. **Using Vercel Marketplace Integration**:
@@ -200,9 +242,28 @@ const { text, steps } = await agent.generate({
 Make sure to add these environment variables in your Vercel project settings:
 
 - `KERNEL_API_KEY` - Your Kernel API key
-- `OLLAMA_BASE_URL` - Ollama base URL (default: `http://localhost:11434/v1`)
-- `OLLAMA_API_KEY` - Ollama API key (`ollama` is fine for localhost)
-- `OLLAMA_MODEL` - Ollama model ID (default: `kimi-k2-thinking:cloud`)
+- `SANDBOX_PROVIDER` - `kernel` (default) or `vps`
+- `OLLAMA_BASE_URL` - Local Ollama base URL (default: `http://localhost:11434/v1`)
+- `OLLAMA_API_KEY` - Local Ollama API key (`ollama` is fine for localhost)
+- `OLLAMA_MODEL` - Backward-compatible default model
+- `OLLAMA_MODEL_AUTOMATION` - Model used for web automation tasks
+- `OLLAMA_MODEL_REASONING` - Model used for analysis/planning tasks
+- `OLLAMA_MODEL_OCR` - Model used for OCR/vision extraction tasks
+- `OLLAMA_CLOUD_BASE_URL` - Optional cloud fallback base URL
+- `OLLAMA_CLOUD_API_KEY` - Optional cloud fallback API key
+- `OLLAMA_CLOUD_MODEL` - Backward-compatible cloud fallback model
+- `OLLAMA_CLOUD_MODEL_AUTOMATION` - Optional cloud model override for automation
+- `OLLAMA_CLOUD_MODEL_REASONING` - Optional cloud model override for reasoning
+- `OLLAMA_CLOUD_MODEL_OCR` - Optional cloud model override for OCR
+- `OLLAMA_CLOUD_DEPLOYMENT_SHA` - Optional header value sent as `x-deployment-sha` for cloud routing
+- `OLLAMA_CLOUD_SSH_PUBLIC_KEY` - Optional header value sent as `x-ssh-public-key` for SSH-bound cloud routing
+- `SUPABASE_URL` - Supabase REST base URL (`http://127.0.0.1:54321` for local self-hosting)
+- `SUPABASE_ANON_KEY` - Supabase anon key (optional when service role key is set)
+- `SUPABASE_SERVICE_ROLE_KEY` - Preferred key for server-side memory writes
+- `SUPABASE_MEMORY_TABLE` - Memory table name (default: `agent_memory`)
+- `VPS_SANDBOX_SESSION_ID` - Session label when VPS mode is enabled
+- `VPS_SANDBOX_LIVE_VIEW_URL` - Live-view iframe URL hosted from your VPS
+- `VPS_SANDBOX_CDP_WS_URL` - CDP websocket URL for your VPS browser instance
 
 ## Learn More
 
