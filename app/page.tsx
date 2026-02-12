@@ -14,9 +14,8 @@ import {
   Pause,
   Square,
   MousePointer2,
-  Volume2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { StepsOverlay } from "@/components/StepsOverlay";
 
 interface BrowserSession {
@@ -76,14 +75,6 @@ export default function HomePage() {
   const [deployUrl, setDeployUrl] = useState<string | null>(null);
   const [task, setTask] = useState("Go to https://eburon.ai/ and create a blog post");
   const [stepsOverlayResult, setStepsOverlayResult] = useState<AutomationResult | null>(null);
-  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
-  const [isTranscribingAudio, setIsTranscribingAudio] = useState(false);
-  const [isSpeakingAudio, setIsSpeakingAudio] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const mediaChunksRef = useRef<Blob[]>([]);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const totalRuns = automationResults.length;
   const successfulRuns = automationResults.filter((result) => result.success).length;
@@ -227,190 +218,6 @@ export default function HomePage() {
       setClosingBrowser(false);
     }
   };
-
-  const cleanupRecordingStream = () => {
-    if (mediaStreamRef.current) {
-      for (const track of mediaStreamRef.current.getTracks()) {
-        track.stop();
-      }
-      mediaStreamRef.current = null;
-    }
-  };
-
-  const transcribeAudio = async (audioBlob: Blob) => {
-    setIsTranscribingAudio(true);
-    try {
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "task-audio.webm");
-      const response = await fetch("/api/stt", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || "Transcription failed");
-      }
-
-      const transcript = (data?.text || "").trim();
-      if (transcript) {
-        setTask((prev) => (prev ? `${prev}\n${transcript}` : transcript));
-      } else {
-        setVoiceError("No speech detected. Try speaking a bit louder.");
-      }
-    } catch (error) {
-      setVoiceError(
-        error instanceof Error ? error.message : "Failed to transcribe audio"
-      );
-    } finally {
-      setIsTranscribingAudio(false);
-    }
-  };
-
-  const toggleRecording = async () => {
-    if (isTranscribingAudio || runningAutomation) return;
-    setVoiceError(null);
-
-    if (isRecordingAudio) {
-      mediaRecorderRef.current?.stop();
-      return;
-    }
-
-    if (
-      typeof window === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia ||
-      typeof MediaRecorder === "undefined"
-    ) {
-      setVoiceError("Microphone recording is not supported on this browser.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-
-      const preferredMimeTypes = [
-        "audio/webm;codecs=opus",
-        "audio/webm",
-        "audio/mp4",
-      ];
-      const supportedMimeType = preferredMimeTypes.find((mimeType) =>
-        MediaRecorder.isTypeSupported(mimeType)
-      );
-
-      const recorder = supportedMimeType
-        ? new MediaRecorder(stream, { mimeType: supportedMimeType })
-        : new MediaRecorder(stream);
-
-      mediaChunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          mediaChunksRef.current.push(event.data);
-        }
-      };
-      recorder.onstop = async () => {
-        const chunks = [...mediaChunksRef.current];
-        mediaChunksRef.current = [];
-        cleanupRecordingStream();
-        setIsRecordingAudio(false);
-
-        if (!chunks.length) {
-          setVoiceError("No audio captured from microphone.");
-          return;
-        }
-
-        const audioBlob = new Blob(chunks, {
-          type: recorder.mimeType || "audio/webm",
-        });
-        await transcribeAudio(audioBlob);
-      };
-
-      recorder.start();
-      mediaRecorderRef.current = recorder;
-      setIsRecordingAudio(true);
-    } catch (error) {
-      cleanupRecordingStream();
-      setIsRecordingAudio(false);
-      setVoiceError(
-        error instanceof Error ? error.message : "Unable to access microphone."
-      );
-    }
-  };
-
-  const speakLatestText = async () => {
-    if (isSpeakingAudio) {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current = null;
-      }
-      setIsSpeakingAudio(false);
-      return;
-    }
-
-    const textToSpeak = (automationResults[0]?.response || task || "").trim();
-    if (!textToSpeak) return;
-
-    setVoiceError(null);
-    setIsSpeakingAudio(true);
-    try {
-      const response = await fetch("/api/tts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: textToSpeak }),
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload?.error || "Failed to synthesize speech");
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audioPlayerRef.current = audio;
-
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-        if (audioPlayerRef.current === audio) {
-          audioPlayerRef.current = null;
-        }
-        setIsSpeakingAudio(false);
-      };
-      audio.onerror = () => {
-        URL.revokeObjectURL(audioUrl);
-        if (audioPlayerRef.current === audio) {
-          audioPlayerRef.current = null;
-        }
-        setIsSpeakingAudio(false);
-        setVoiceError("Audio playback failed.");
-      };
-
-      await audio.play();
-    } catch (error) {
-      setIsSpeakingAudio(false);
-      setVoiceError(
-        error instanceof Error ? error.message : "Failed to play synthesized speech"
-      );
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (
-        mediaRecorderRef.current &&
-        mediaRecorderRef.current.state !== "inactive"
-      ) {
-        mediaRecorderRef.current.stop();
-      }
-      cleanupRecordingStream();
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current = null;
-      }
-    };
-  }, []);
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -647,41 +454,18 @@ export default function HomePage() {
                             />
                             <button
                               type="button"
-                              className={`absolute right-10 bottom-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/60 text-gray-200 hover:bg-black/80 ${
-                                isSpeakingAudio ? "ring-1 ring-cyan-400" : ""
-                              }`}
-                              aria-label="Read text with text-to-speech"
-                              onClick={speakLatestText}
-                              disabled={isTranscribingAudio}
-                            >
-                              <Volume2 className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              className={`absolute right-2 bottom-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/60 text-gray-200 hover:bg-black/80 ${
-                                isRecordingAudio ? "ring-1 ring-red-400" : ""
-                              }`}
+                              className="absolute right-2 bottom-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/60 text-gray-200 hover:bg-black/80"
                               aria-label="Dictate task with microphone"
-                              onClick={toggleRecording}
-                              disabled={runningAutomation || isTranscribingAudio}
+                              onClick={() => {
+                                // Voice input capture can be wired here.
+                              }}
                             >
-                              {isTranscribingAudio ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Mic className="w-3 h-3" />
-                              )}
+                              <Mic className="w-3 h-3" />
                             </button>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {isRecordingAudio
-                              ? "Listening... tap mic again to stop."
-                              : isTranscribingAudio
-                              ? "Transcribing your voice..."
-                              : "Press Cmd/Ctrl + Enter to run"}
+                          <p className="hidden sm:block text-xs text-muted-foreground">
+                            Press Cmd/Ctrl + Enter to run
                           </p>
-                          {voiceError && (
-                            <p className="text-xs text-red-500">{voiceError}</p>
-                          )}
                         </div>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                           <Button
