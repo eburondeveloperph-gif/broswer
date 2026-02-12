@@ -9,7 +9,10 @@
     "start": "next start",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
-    "supabase:status": "supabase status"
+    "supabase:status": "supabase status",
+    "voice:start": "docker compose -f docker-compose.voice.yml up -d --build",
+    "voice:stop": "docker compose -f docker-compose.voice.yml down",
+    "voice:logs": "docker compose -f docker-compose.voice.yml logs -f voice-service"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.69",

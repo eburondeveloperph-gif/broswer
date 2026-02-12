@@ -1,0 +1,14 @@
+services:
+  voice-service:
+    build:
+      context: ./voice-service
+    container_name: eburon-voice-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      STT_MODEL_SIZE: ${STT_MODEL_SIZE:-small}
+      STT_DEVICE: ${STT_DEVICE:-cpu}
+      STT_COMPUTE_TYPE: ${STT_COMPUTE_TYPE:-int8}
+      TTS_VOICE: ${VOICE_SERVICE_VOICE:-en-us}
+      TTS_SPEED: ${VOICE_SERVICE_SPEED:-170}

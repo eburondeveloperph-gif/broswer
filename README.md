@@ -104,6 +104,17 @@ This template shows how to:
    VPS_SANDBOX_SESSION_ID=vps-sandbox-session
    VPS_SANDBOX_LIVE_VIEW_URL=
    VPS_SANDBOX_CDP_WS_URL=
+
+   # STT/TTS local voice service
+   VOICE_SERVICE_BASE_URL=http://localhost:8081
+   VOICE_SERVICE_VOICE=en-us
+   VOICE_SERVICE_SPEED=170
+
+   # Optional OpenAI fallback for STT/TTS
+   OPENAI_API_KEY=
+   OPENAI_STT_MODEL=gpt-4o-mini-transcribe
+   OPENAI_TTS_MODEL=gpt-4o-mini-tts
+   OPENAI_TTS_VOICE=alloy
    ```
 
 5. **Optional: start self-hosted Supabase locally**:
@@ -115,13 +126,21 @@ This template shows how to:
 
    Then set local memory vars in `.env.local` (typical local URL: `http://127.0.0.1:54321`).
 
-6. **Run the development server**:
+6. **Optional: start local STT/TTS voice service**:
+
+   ```bash
+   bun run voice:start
+   ```
+
+   This starts `voice-service` on `http://localhost:8081` for `/api/stt` and `/api/tts`.
+
+7. **Run the development server**:
 
    ```bash
    bun dev
    ```
 
-7. **Open** [http://localhost:3000](http://localhost:3000) in your browser
+8. **Open** [http://localhost:3000](http://localhost:3000) in your browser
 
 ## How It Works
 
@@ -264,6 +283,13 @@ Make sure to add these environment variables in your Vercel project settings:
 - `VPS_SANDBOX_SESSION_ID` - Session label when VPS mode is enabled
 - `VPS_SANDBOX_LIVE_VIEW_URL` - Live-view iframe URL hosted from your VPS
 - `VPS_SANDBOX_CDP_WS_URL` - CDP websocket URL for your VPS browser instance
+- `VOICE_SERVICE_BASE_URL` - Local STT/TTS service URL (default: `http://localhost:8081`)
+- `VOICE_SERVICE_VOICE` - Default voice passed to local TTS service (default: `en-us`)
+- `VOICE_SERVICE_SPEED` - Speech speed for local TTS service (default: `170`)
+- `OPENAI_API_KEY` - Optional fallback when local STT/TTS service is unavailable
+- `OPENAI_STT_MODEL` - Optional OpenAI STT model override
+- `OPENAI_TTS_MODEL` - Optional OpenAI TTS model override
+- `OPENAI_TTS_VOICE` - Optional OpenAI TTS voice override
 
 ## Learn More
 
