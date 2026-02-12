@@ -76,7 +76,7 @@ export default function HomePage() {
   const [task, setTask] = useState("Go to https://eburon.ai/ and create a blog post");
   const [stepsOverlayResult, setStepsOverlayResult] = useState<AutomationResult | null>(null);
   const [showServerSettings, setShowServerSettings] = useState(false);
-  const [serverTarget, setServerTarget] = useState<"vps" | "cloud-eu">("vps");
+  const [serverTarget, setServerTarget] = useState<"vps" | "cloud-eu">("cloud-eu");
 
   const totalRuns = automationResults.length;
   const successfulRuns = automationResults.filter((result) => result.success).length;
@@ -433,8 +433,8 @@ export default function HomePage() {
                                 Current:{" "}
                                 <span className="font-medium text-foreground">
                                   {serverTarget === "vps"
-                                    ? "VPS Self-Hosted"
-                                    : "Cloud Server EU (Ollama Cloud)"}
+                                    ? "Eburon Local"
+                                    : "Eburon EU Cloud"}
                                 </span>
                               </p>
                             </div>
@@ -444,7 +444,7 @@ export default function HomePage() {
                               size="sm"
                               onClick={() => setShowServerSettings((v) => !v)}
                             >
-                              Server Settings
+                              Eburon Server Settings
                             </Button>
                           </div>
 
@@ -459,9 +459,9 @@ export default function HomePage() {
                                     : "border-white/10 hover:border-white/30"
                                 }`}
                               >
-                                <p className="text-sm font-medium">VPS Self-Hosted</p>
+                                <p className="text-sm font-medium">Eburon Local</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Uses OLLAMA_BASE_URL on your own server.
+                                  Uses your self-hosted endpoint (OLLAMA_BASE_URL).
                                 </p>
                               </button>
                               <button
@@ -474,10 +474,10 @@ export default function HomePage() {
                                 }`}
                               >
                                 <p className="text-sm font-medium">
-                                  Cloud Server EU (Ollama Cloud)
+                                  Eburon EU Cloud
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Uses OLLAMA_CLOUD_* variables.
+                                  Uses cloud variables (OLLAMA_CLOUD_*).
                                 </p>
                               </button>
                             </div>
@@ -652,8 +652,8 @@ export default function HomePage() {
                                   {result.serverTarget && (
                                     <Badge variant="outline">
                                       {result.serverTarget === "vps"
-                                        ? "VPS"
-                                        : "Cloud EU"}
+                                        ? "Eburon Local"
+                                        : "Eburon EU Cloud"}
                                     </Badge>
                                   )}
                                       {result.detailedSteps &&
