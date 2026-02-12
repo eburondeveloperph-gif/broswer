@@ -4,5 +4,7 @@
     "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
     "editor.codeActions.triggerOnFocusChange": true,
     "editor.columnSelection": true,
-    "editor.colorDecoratorsLimit": 500000
+    "editor.colorDecoratorsLimit": 500000,
+    "editor.definitionLinkOpensInPeek": true,
+    "editor.defaultFormatter": "google.antigravity-remote-openssh"
 }
