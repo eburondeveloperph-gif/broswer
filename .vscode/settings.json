@@ -9,5 +9,12 @@
     "editor.defaultFormatter": "google.antigravity-remote-openssh",
     "editor.experimental.treeSitterTelemetry": true,
     "editor.gotoLocation.alternativeImplementationCommand": "editor.action.referenceSearch.trigger",
-    "editor.linkedEditing": true
+    "editor.linkedEditing": true,
+    "cSpell.words": [
+        "analy",
+        "deepseek",
+        "eburon",
+        "kimi",
+        "onkernel"
+    ]
 }
