@@ -1,5 +1,6 @@
 import { Kernel, NotFoundError } from "@onkernel/sdk";
 import { clearLatestBrowserSession } from "@/lib/browser-session-registry";
+import { resolveSandboxProvider } from "@/lib/sandbox-provider";
 
 export async function POST(req: Request) {
   try {
@@ -10,6 +11,16 @@ export async function POST(req: Request) {
         { error: "Missing sessionId" },
         { status: 400 }
       );
+    }
+
+    const sandboxProvider = resolveSandboxProvider();
+    if (sandboxProvider === "vps") {
+      // VPS session lifecycle is managed externally; treat close as local detach.
+      clearLatestBrowserSession(sessionId);
+      return Response.json({
+        success: true,
+        message: "Detached from VPS sandbox session",
+      });
     }
 
     const apiKey = process.env.KERNEL_API_KEY;

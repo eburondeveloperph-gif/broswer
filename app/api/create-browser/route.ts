@@ -8,6 +8,10 @@ import {
   setCreateBrowserInFlight,
   setLatestBrowserSession,
 } from "@/lib/browser-session-registry";
+import {
+  getVpsSandboxConfig,
+  resolveSandboxProvider,
+} from "@/lib/sandbox-provider";
 
 async function closeAllActiveSessions(kernel: Kernel) {
   const sessionIds: string[] = [];
@@ -71,6 +75,36 @@ return {
 }
 
 export async function POST() {
+  const sandboxProvider = resolveSandboxProvider();
+
+  if (sandboxProvider === "vps") {
+    const vpsConfig = getVpsSandboxConfig();
+    if (!vpsConfig) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "VPS sandbox is enabled but VPS_SANDBOX_LIVE_VIEW_URL or VPS_SANDBOX_CDP_WS_URL is missing",
+        },
+        { status: 400 }
+      );
+    }
+
+    const session = {
+      sessionId: vpsConfig.sessionId,
+      liveViewUrl: vpsConfig.liveViewUrl,
+      cdpWsUrl: vpsConfig.cdpWsUrl,
+      spinUpTime: 0,
+      provider: "vps" as const,
+    };
+    setLatestBrowserSession(session);
+
+    return NextResponse.json({
+      success: true,
+      ...session,
+    });
+  }
+
   if (isCreateBrowserInFlight()) {
     const recentSession = getRecentBrowserSession();
     if (recentSession) {
@@ -148,6 +182,7 @@ export async function POST() {
       liveViewUrl: browser.browser_live_view_url,
       cdpWsUrl: browser.cdp_ws_url,
       spinUpTime,
+      provider: "kernel" as const,
     };
     setLatestBrowserSession(session);
 

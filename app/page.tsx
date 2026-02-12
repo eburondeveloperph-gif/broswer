@@ -23,6 +23,7 @@ interface BrowserSession {
   liveViewUrl: string;
   cdpWsUrl: string;
   spinUpTime: number;
+  provider?: "kernel" | "vps";
 }
 
 interface ExecutedCode {
@@ -117,6 +118,7 @@ export default function HomePage() {
           liveViewUrl: data.liveViewUrl,
           cdpWsUrl: data.cdpWsUrl,
           spinUpTime: data.spinUpTime,
+          provider: data.provider,
         });
       } else {
         if (data.error === "MISSING_API_KEY" && data.deployUrl) {
@@ -147,6 +149,8 @@ export default function HomePage() {
         },
         body: JSON.stringify({
           sessionId: browserSession.sessionId,
+          cdpWsUrl: browserSession.cdpWsUrl,
+          provider: browserSession.provider,
           task: task.trim(),
           serverTarget,
         }),
