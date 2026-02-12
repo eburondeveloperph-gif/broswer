@@ -6,5 +6,8 @@
     "editor.columnSelection": true,
     "editor.colorDecoratorsLimit": 500000,
     "editor.definitionLinkOpensInPeek": true,
-    "editor.defaultFormatter": "google.antigravity-remote-openssh"
+    "editor.defaultFormatter": "google.antigravity-remote-openssh",
+    "editor.experimental.treeSitterTelemetry": true,
+    "editor.gotoLocation.alternativeImplementationCommand": "editor.action.referenceSearch.trigger",
+    "editor.linkedEditing": true
 }
